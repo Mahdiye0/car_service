@@ -17,7 +17,7 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next)
     {
-        $inputs=$request->all();
+        $inputs=$request->validated();
         $admin=User::where(['user_name'=> $inputs['user_name'], $inputs['password']])->with('roles')
         ->whereHas('roles',function($q) {
             $q->where('roles.id',3);

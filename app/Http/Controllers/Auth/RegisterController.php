@@ -54,17 +54,15 @@ class RegisterController extends Controller
     {
 
 
-      return Validator::make($data, [
+        return Validator::make($data, [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'user_name' => ['required', 'string',  'max:255', 'unique:users'],
             'mobile' => ['required', 'string',  'max:11'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'password_confirmation' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'min:1','numeric'],
-     ]);
-
-
+            'role' => ['required', 'min:1', 'numeric'],
+        ]);
     }
 
     /**
@@ -76,7 +74,7 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
 
-        $user =  DB::transaction(function ()  use ($data){
+        $user =  DB::transaction(function ()  use ($data) {
             $user =  User::create([
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
@@ -85,18 +83,14 @@ class RegisterController extends Controller
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
             ]);
-           if($data['role']=='3')
-           {
-                $user->roles()->attach(array('1','2'));
-
-           }
-           else
-            $user ->roles()->attach($data['role']);
-
+            if ($data['role'] == '3') {
+                $user->roles()->attach(array('1', '2'));
+            } else {
+                $user->roles()->attach($data['role']);
+            }
 
             return $user;
         });
         return $user;
-
     }
 }

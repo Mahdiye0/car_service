@@ -9,12 +9,11 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Service;
 use Illuminate\Http\Request;
-use App\CustomClass\CheckPage;
-use App\CustomClass\CheckRole;
 use Shetabit\Multipay\Invoice;
 use App\Http\Requests\UserRequest;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Repositories\Admin\UserRepository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Shetabit\Payment\Facade\Payment;
@@ -27,346 +26,168 @@ use Shetabit\Multipay\Exceptions\InvalidPaymentException;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public $repo;
 
-    public function __construct()
+    public function __construct(UserRepository $repo)
     {
-
+        $this->repo = $repo;
     }
-    public function receipt( $referenceId)
+
+    public function receipt($referenceId)
     {
-        return view('carservice.recharge.receipt',compact('referenceId'));
+        return view('carservice.recharge.receipt', compact('referenceId'));
     }
-    public function pay(User $user,Request $request)
+
+    public function pay(User $user, Request $request)
     {
-
-       $input=$request->all();
-       $subscription_type=$input['f'];
-
-       $expire_date=$user->getOriginal('expire_date')? $user->getOriginal('expire_date')->addMonths($subscription_type): Carbon::now()->addMonths($subscription_type);
-
-       $amount=0;
-       switch ($input['f']) {
-           case '1':
-            $amount=1000;
-               break;
-            case '6':
-            $amount=5000;
-                break;
-            case '12':
-            $amount=10000;
-                break;
-
-
-       }
-        $invoice = new Invoice;
-        $invoice->amount($amount);
-        $invoice->detail(['detailName' => 'your detail goes here']);
-        return Payment::purchase($invoice, function($driver, $transactionId)use($amount,$input,$user,$subscription_type,$expire_date){
-            Session::put('transactionId', $transactionId);
-            Session::put('amount', $amount);
-            DB::transaction(function() use($amount,$input,$user,$subscription_type,$transactionId,$expire_date){
-                DB::table('payments')->insert([
-                    'amount'=>$amount,
-                    'transactionId'=>$transactionId,
-                    'subscription_type'=>$subscription_type,
-                    'user_id'=>$user->id,
-                    'created_at' => now(),
-
-                ]);
-
-                DB::table('users')->where('id',$user->id)->update(['expire_date'=>$expire_date->toDateTimeString()]);
-            });
-
-
-        })->pay()->render();
-
-
+        return $this->repo->pay($user, $request);
     }
+
+
     public function verifyy()
     {
-
-        try {
-            // $payment=ModelsPayment::where('user_id',auth()->user()->id)->orderBy('created_at','desc')->first();
-            // dd($payment->user->expire_date);
-
-            $receipt = Payment::amount(Session::get('amount'))->transactionId( Session::get('transactionId'))->verify();
-
-            // You can show payment referenceId to the user.
-            // echo $receipt->getReferenceId();
-            $referenceId=$receipt->getReferenceId();
-            // $payment->referenceId = $referenceId;
-
-            // $result=$payment->save();
-            return redirect()->route('car-service.user.receipt', $referenceId);
-
-
-        } catch (InvalidPaymentException $exception) {
-
-            echo $exception->getMessage();
+        $result=$this->repo->verifyy();
+        if($result['status']){
+            return redirect()->route('car-service.user.receipt', $result['referenceId']);
+        }else{
+            return $result;
         }
     }
+
+
     public function recharge()
     {
         return view('carservice.recharge.index');
     }
-    public function message($id,$type)
+
+
+    public function message($id, $type)
     {
-        if($type=='2' || $type=='3')
-        {
-            $results=Order::where('user_id',$id)->Where(function ($query) {
-                $query->Orwhere(['status'=>null,'rate'=>null]);
-
-            })->with('services.TypeService','services.user')->simplePaginate(3);
-
-               return view('carservice.message',compact('results'));
-        }
-
+        $results=$this->repo->message($id, $type);
+        return view('carservice.message', compact('results'));
     }
-    public function status($id,$status)
+
+
+    public function status($id, $status)
     {
-            $order = Order::find($id);
-
-            $order->status = $status;
-
-            $result=$order->save();
-
-            if($result)
-            {
-                 return response()->json(['status'=>true]);
-            }
-
-        else
-        {
-            return response()->json(['status'=>false]);
+        $result=$this->repo->status($id, $status);
+        if ($result) {
+            return response()->json(['status' => true]);
+        } else {
+            return response()->json(['status' => false]);
         }
-
     }
-    public function rate($id,$rate)
+
+
+    public function rate($id, $rate)
     {
-            $order = Order::find($id);
+        $result=$this->repo->rate($id, $rate);
 
-            $order->rate = $rate;
-
-            $result=$order->save();
-
-            if($result)
-            {
-                 return response()->json(['status'=>true]);
-            }
-
-        else
-        {
-            return response()->json(['status'=>false]);
+        if ($result) {
+            return response()->json(['status' => true]);
+        } else {
+            return response()->json(['status' => false]);
         }
-
     }
+
+
     public function reportorder()
     {
-        $users1=User::where('verification',0)->get();
-
-        $orders=Order::with('user','services.TypeService')->simplePaginate(10);
-        // dd($orders);
-        return view('admin.report.report',compact('orders','users1'));
-
-
+        $result=$this->repo->reportorder();
+        return view('admin.report.report')
+            ->with(['orders'=>$result['orders'], 'users1'=>$result['users1']]);
     }
+
 
     public function customer(Request $request)
     {
-        $users1=User::where('verification',0)->get();
-
-        // البته کدهای زیر هم کار میکنن
-        $users=User::with('roles')
-        ->whereHas('roles',function($q) {
-            $q->where('roles.id',2);
-        })->simplePaginate(10);
-
-        return view('admin.customer.index',compact('users1','users'));
+        $result=$this->repo->customer($request);
+        return view('admin.customer.index')->with(['users1'=>$result['users1'], 'users'=>$result['users']]);
     }
-    public function index(Request $request )
+
+
+    public function index(Request $request)
     {
-        //لیست خدمت دهنده رو میاره
-        try
-        {
-
-            $users1=User::where('verification',0)->get();
-            $role=Role::find(1);
-            $users=$role->users;
-
-            return view('admin.user.index',compact('users1','users'));
+        $result=$this->repo->index($request);
+        if($result['status']){
+            return view('admin.user.index', compact(['users1'=>$result['users1'], 'users'=>$result['users']]));
+        }else{
+            return redirect()->back()->with('swal-error',$result['swal']);
         }
-        catch (\Exception $e) {
-
-           echo  $e->getMessage();
-        }
-
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function create()
     {
-        $users1=User::where('verification',0)->get();
-        return view('admin.user.create',compact('users1'));
-
+        $users1 = User::where('verification', 0)->get();
+        return view('admin.user.create', compact('users1'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
     public function store(UserRequest $request)
     {
-        $users1=User::where('verification',0)->get();
-
-        $inputs=$request->all();
-        // dd($inputs);
-        $user =  DB::transaction(function ()  use ($inputs){
-            $user =  User::create([
-                'first_name' => $inputs['first_name'],
-                'last_name' => $inputs['last_name'],
-                'user_name' => $inputs['user_name'],
-                'mobile' => $inputs['mobile'],
-                // 'email' => $inputs['email'],
-                'password' => Hash::make($inputs['password']),
-            ]);
-           if($inputs['role']=='3')
-           {
-                $user->roles()->attach(array('1','2'));
-
-           }
-           else
-            $user ->roles()->attach($inputs['role']);
-
-        });
-        return redirect()->route('admin.user',compact('users1'))->with('swal-success','عضو جدید اضافه شد');
-
-
+        $result=$this->repo->store($request);
+        return redirect()->route('admin.user')->with(['users1'=>$result['users1'],'swal-success', $result['swal']]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
-        $users1=User::where('verification',0)->get();
-
-        $data=User::find($id);
-
-        return view('admin.user.edit',compact('users1','data'));
+        $users1 = User::where('verification', 0)->get();
+        $data = User::find($id);
+        return view('admin.user.edit', compact('users1', 'data'));
     }
+
+
     public function edituser()
     {
-        $users1=User::where('verification',0)->get();
-
-
-        if(Auth::check())
-
-             return view('carservice.edituser',compact('users1'));
+        $users1 = User::where('verification', 0)->get();
+        if (Auth::check()) {
+            return view('carservice.edituser', compact('users1'));
+        }
     }
+
+
     public function edit_profile()
     {
-
-
-        if(Auth::check())
-              $users1=User::where('verification',0)->get();
-             return view('admin.user.edituser',compact('users1'));
+        if (Auth::check())
+            $users1 = User::where('verification', 0)->get();
+        return view('admin.user.edituser', compact('users1'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UserRequest $request,User $user)
+
+    public function update(UserRequest $request, User $user)
     {
-        $users1=User::where('verification',0)->get();
-        // استفاده از روت مدل بایدینگ
-        $inputs=$request->all();
-        $inputs['password']= Hash::make($inputs['password']);
-
-        $user->update($inputs);
-        return redirect()->route('admin.user',compact('users1'));
+        $users1=$this->repo->update($request,$user);
+        return redirect()->route('admin.user', compact('users1'));
     }
-    public function updateuser(ProfileUserRequest $request,ImageService $imageservice, User  $user)
+
+
+    public function updateuser(ProfileUserRequest $request, ImageService $imageservice, User  $user)
     {
-
-        // استفاده از روت مدل بایدینگ
-        $inputs=$request->all();
-        if($request->hasFile('image'))
-            $inputs['image']=$imageservice->save($request->file('image'));
-
-        $user->update($inputs);
-        return redirect()->route('car-service.home')->with('swal-success','پروفایل ویرایش شد');
+        $result=$this->repo->updateuser($request,$imageservice,$user);
+        return redirect()->route('car-service.home')->with('swal-success', $result['swal']);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function destroy(User $user)
     {
-        $users1=User::where('verification',0)->get();
-        $user_id=$user->id;
-
-        DB::transaction(function () use($user_id) {
-            User::where('id',  $user_id)->delete();
-             Service::where('id',  $user_id)->delete();
-        });
-        return redirect()->route('admin.user',compact('users1'));
-
-
-
+        $users1=$this->repo->destroy($user);
+        return redirect()->route('admin.user', compact('users1'));
     }
+
+
     public function verify(User $user)
     {
-        $user->verification=$user->verification==0?1:0;
-
-        $result=$user->save();
-        if($result)
-        {
-            if($user->verification==0)
-            {
-                 return response()->json(['status'=>true,'checked'=>false]);
+        $result=$this->repo->verify($user);
+        if ($result) {
+            if ($user->verification == 0) {
+                return response()->json(['status' => true, 'checked' => false]);
+            } else {
+                return response()->json(['status' => true, 'checked' => true]);
             }
-            else
-            {
-                 return response()->json(['status'=>true,'checked'=>true]);
-            }
-
+        } else {
+            return response()->json(['status' => false]);
         }
-        else
-        {
-            return response()->json(['status'=>false]);
-        }
-
     }
 }

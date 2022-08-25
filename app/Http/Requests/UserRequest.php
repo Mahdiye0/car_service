@@ -23,7 +23,7 @@ class UserRequest extends FormRequest
      */
     public function rules()
     {
-        if($this->isMethod('post')){
+        if ($this->isMethod('post')) {
             return [
                 'first_name' => 'required|max:120|min:2',
                 'last_name' => 'required|max:120|min:2',
@@ -32,8 +32,7 @@ class UserRequest extends FormRequest
                 'user_name' => 'required|max:20',
                 'password' => 'required|max:20|min:4',
             ];
-        }
-        elseif($this->isMethod('put')){
+        } elseif ($this->isMethod('put')) {
             return [
                 'first_name' => 'required|max:120|min:2',
                 'last_name' => 'required|max:120|min:2',
@@ -41,7 +40,6 @@ class UserRequest extends FormRequest
                 'user_name' => 'required|max:20',
                 'password' => 'required|max:20|min:4',
                 'role' => 'required|in:1,2,3',
-
             ];
         }
     }

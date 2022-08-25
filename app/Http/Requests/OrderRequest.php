@@ -23,28 +23,21 @@ class OrderRequest extends FormRequest
      */
     public function rules()
     {
-        if($this->isMethod('post')){
+        if ($this->isMethod('post')) {
             return [
-
                 'service_id' => 'required|numeric',
                 'user_id' => 'required|numeric',
                 'address' => 'nullable|max:500|min:2|string',
                 'rate' => 'nullable|numeric',
                 'status' => 'nullable|numeric',
-
             ];
-        }
-        elseif($this->isMethod('put')){
+        } elseif ($this->isMethod('put')) {
             return [
-
                 'service_id' => 'required|numeric',
                 'user_id' => 'required|numeric',
                 'address' => 'nullable|max:500|min:2|string',
                 'rate' => 'nullable|numeric',
                 'status' => 'nullable|numeric',
-
-
-
             ];
         }
     }

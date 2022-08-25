@@ -15,7 +15,7 @@
 
           </section>
          <section class="d-flex justify-content-between align-items-center mt-4 mb-3 border-bottom pd-2">
-           <a href="{{route('car-service.service')}}" class="btn btn-info btn-sm">بازگشت
+           <a href="{{route('car-service.service.index')}}" class="btn btn-info btn-sm">بازگشت
            </a>
 
 

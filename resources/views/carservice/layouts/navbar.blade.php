@@ -17,17 +17,17 @@
           @switch($type)
               @case(1)
               <li class="nav-item p-1  ">
-                <a class="nav-link" href="{{ route('car-service.service.reportservice',auth()->user()->id) }}"> گزارش عملکرد
+                <a class="nav-link" href="{{ route('car-service.order.reportservice',auth()->user()->id) }}"> گزارش عملکرد
                  </a>
             </li>
             <li class="nav-item p-1  ">
-                <a class="nav-link" href="{{ route('car-service.service') }}"> خدمات ثبت شده </a>
+                <a class="nav-link" href="{{ route('car-service.service.index') }}"> خدمات ثبت شده </a>
             </li>
                   @break
 
                   @case(2)
                   <li class="nav-item p-1  ">
-                    <a class="nav-link" href="{{ route('car-service.order') }}">درخواست خدمت </a>
+                    <a class="nav-link" href="{{ route('car-service.order.index') }}">درخواست خدمت </a>
                 </li>
                   <li class="nav-item p-1  ">
                     <a class="nav-link" href="{{ route('car-service.type-service.create') }}">ثبت خدمت </a>
@@ -40,16 +40,16 @@
 
                   @case(3)
                   <li class="nav-item p-1  ">
-                    <a class="nav-link" href="{{ route('car-service.service') }}"> خدمات ثبت شده </a>
+                    <a class="nav-link" href="{{ route('car-service.service.index') }}"> خدمات ثبت شده </a>
                 </li>
                   <li class="nav-item p-1  ">
-                    <a class="nav-link" href="{{ route('car-service.order') }}">درخواست خدمت </a>
+                    <a class="nav-link" href="{{ route('car-service.order.index') }}">درخواست خدمت </a>
                 </li>
                   <li class="nav-item p-1  ">
                     <a class="nav-link" href="{{ route('car-service.type-service.create') }}">ثبت خدمت </a>
                 </li>
                 <li class="nav-item p-1  ">
-                    <a class="nav-link" href="{{ route('car-service.service.reportservice',auth()->user()->id) }}"> گزارش عملکرد
+                    <a class="nav-link" href="{{ route('car-service.order.reportservice',auth()->user()->id) }}"> گزارش عملکرد
                      </a>
                 </li>
                 <li class="nav-item p-1  ">

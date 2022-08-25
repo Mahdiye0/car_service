@@ -25,7 +25,6 @@ class ServiceRequest extends FormRequest
     {
         if($this->isMethod('post')){
             return [
-
                 'type_service_id' => 'required|numeric',
                 'province_id' => 'required|numeric',
                 'county_id' => 'required|numeric',
@@ -34,15 +33,10 @@ class ServiceRequest extends FormRequest
                 'provide_services' => 'required',
                 'status' => 'required|numeric',
                 'image'=>'required|image|mimes:png,jpg,jpeg,gif',
-
-
-
-
             ];
         }
         elseif($this->isMethod('put')){
             return [
-
                 'type_service_id' => 'required|numeric',
                 'province_id' => 'required|numeric',
                 'county_id' => 'required|numeric',
@@ -51,9 +45,6 @@ class ServiceRequest extends FormRequest
                 'provide_services' => 'required',
                 'status' => 'required|numeric',
                 'image'=>'image|mimes:png,jpg,jpeg,gif',
-
-
-
             ];
         }
     }

@@ -31,7 +31,6 @@ class ProfileUserRequest extends FormRequest
                 'mobile' => 'required|numeric',
                 'user_name' => 'required|max:20|unique:users,user_name',
                 'image'=>'image|mimes:png,jpg,jpeg,gif',
-
             ];
         }
         elseif($this->isMethod('put')){

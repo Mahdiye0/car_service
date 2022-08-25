@@ -3,12 +3,14 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ServicesController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\TypeServicesController as TypeServicesAdminController;
+
 use App\Http\Controllers\CarService\HomeController;
 use App\Http\Controllers\CarService\OrderController;
-use App\Http\Controllers\Admin\TypeServicesController;
 use App\Http\Controllers\CarService\ServiceController;
 use App\Http\Controllers\CarService\TypeServiceController;
 /*
@@ -22,119 +24,110 @@ use App\Http\Controllers\CarService\TypeServiceController;
 |
 */
 
-
-
 Route::get('/home', [App\Http\Controllers\CarService\HomeController::class, 'index'])->name('home');
-
-
 Auth::routes();
-Route::prefix('admin')->namespace('Admin')->group(function(){
 
-    Route::get('/',[DashboardController::class, 'index'])->name('admin.home');
+//----------------------  admin ---------------------
+Route::middleware('auth')->group(function () {
+    Route::prefix('admin')->name('admin.')->group(function () {
 
-        //type-service
-        Route::prefix('type-service')->group(function(){
-            Route::get('/',[TypeServicesController::class, 'index'])->name('admin.type-service');
-            Route::get('/create',[TypeServicesController::class, 'create'])->name('admin.type-service.create');
-            Route::post('/store',[TypeServicesController::class, 'store'])->name('admin.type-service.store');
-            Route::delete('/destroy/{id}',[TypeServicesController::class, 'destroy'])->name('admin.type-service.destroy');
-            Route::get('/edit/{id}',[TypeServicesController::class, 'edit'])->name('admin.type-service.edit');
-            Route::put('/update/{type_service}',[TypeServicesController::class, 'update'])->name('admin.type-service.update');
-            Route::get('/province/{id}',[TypeServicesController::class, 'province'])->name('admin.type-service.province');
-            Route::get('/county/{id}',[TypeServicesController::class, 'county'])->name('admin.type-service.county');
+        Route::get('/', [DashboardController::class, 'index'])->name('home');
+        //===== type-service
+        Route::prefix('type-service')->name('type-service.')->controller(TypeServicesAdminController::class)->group(function () {
+            Route::get('/',  'index')->name('type-service');
+            Route::get('/create',  'create')->name('create');
+            Route::post('/store', 'store')->name(' store');
+            Route::delete('/destroy/{id}', 'destroy')->name('destroy');
+            Route::get('/edit/{id}',  'edit')->name('edit');
+            Route::put('/update/{type_service}', 'update')->name('update');
+            Route::get('/province/{id}',  'province')->name('province');
+            Route::get('/county/{id}',  'county')->name('county');
         });
-  //user
-  Route::prefix('user')->group(function(){
-    Route::get('/',[UserController::class, 'index'])->name('admin.user');
-    Route::get('/customer',[UserController::class, 'customer'])->name('admin.customer');
-    Route::get('/create',[UserController::class, 'create'])->name('admin.user.create');
-    Route::post('/store',[UserController::class, 'store'])->name('admin.user.store');
-    Route::delete('/destroy/{user}',[UserController::class, 'destroy'])->name('admin.user.destroy');
-    Route::get('/edit/{id}',[UserController::class, 'edit'])->name('admin.user.edit');
-    Route::put('/update/{user}',[UserController::class, 'update'])->name('admin.user.update');
-    Route::get('/province/{id}',[UserController::class, 'province'])->name('admin.user.province');
-    Route::get('/county/{id}',[UserController::class, 'county'])->name('admin.user.county');
-    Route::get('/verify/{user}',[UserController::class, 'verify'])->name('admin.user.vefiry');
-    Route::get('/edit',[UserController::class, 'edit_profile'])->name('admin.user.edit-profile');
 
-    Route::get('/report-order',[UserController::class, 'reportorder'])->name('admin.user.report-order');
-});
-     //service
-  Route::prefix('service')->group(function(){
-    Route::get('/',[ServicesController::class, 'index'])->name('admin.service');
-    Route::get('/create/{id}',[ServicesController::class, 'create'])->name('admin.service.create');
-    Route::post('/store',[ServicesController::class, 'store'])->name('admin.service.store');
-    Route::delete('/destroy/{id}',[ServicesController::class, 'destroy'])->name('admin.service.destroy');
-    Route::get('/edit/{service}',[ServicesController::class, 'edit'])->name('admin.service.edit');
-    Route::put('/update/{service}',[ServicesController::class, 'update'])->name('admin.service.update');
-    Route::get('/province/{id}',[ServicesController::class, 'province'])->name('admin.service.province');
-    Route::get('/county/{id}',[ServicesController::class, 'county'])->name('admin.service.county');
-    Route::get('/verify/{id}',[ServicesController::class, 'county'])->name('admin.service.vefiry');
-  });
-});
+        //======== user
+        Route::prefix('user')->name('user.')->controller(UserController::class)->group(function () {
+            Route::get('/', 'index')->name('/');
+            Route::get('/customer',  'customer')->name('customer');
+            Route::get('/create',  'create')->name('create');
+            Route::post('/store', 'store')->name('store');
+            Route::delete('/destroy/{user}',  'destroy')->name('destroy');
+            Route::get('/edit/{id}',  'edit')->name('edit');
+            Route::put('/update/{user}', 'update')->name('update');
+            Route::get('/province/{id}',  'province')->name('province');
+            Route::get('/county/{id}', 'county')->name('county');
+            Route::get('/verify/{user}', 'verify')->name('vefiry');
+            Route::get('/edit',  'edit_profile')->name('edit-profile');
+            Route::get('/report-order',  'reportorder')->name('report-order');
+        });
 
-Route::prefix('car-service')->namespace('CarService')->group(function(){
-
-    Route::get('/',[HomeController::class, 'index'])->name('car-service.home');
-
-    Route::get('/contact-us',[TypeServiceController::class, 'contact'])->name('car-service.contact-us');
-
-    //typeservice
-        Route::prefix('type-service')->group(function(){
-        Route::get('/create',[TypeServiceController::class, 'create'])->name('car-service.type-service.create');
-        Route::post('/store',[TypeServiceController::class, 'store'])->name('car-service.type-service.store');
-
+        //=========== service
+        Route::prefix('service')->name('service.')->controller(ServicesController::class)->group(function () {
+            Route::get('/',  'index')->name('/');
+            Route::get('/create/{id}', 'create')->name('create');
+            Route::post('/store', 'store')->name('store');
+            Route::delete('/destroy/{id}',  'destroy')->name('destroy');
+            Route::get('/edit/{service}', 'edit')->name('edit');
+            Route::put('/update/{service}',  'update')->name('update');
+            Route::get('/province/{id}',  'province')->name('province');
+            Route::get('/county/{id}',  'county')->name('county');
+            Route::get('/verify/{id}', 'county')->name('vefiry');
+        });
     });
 
-        //order
-        Route::prefix('order')->group(function(){
-            Route::get('/',[OrderController::class, 'index'])->name('car-service.order');
 
-            Route::get('/report-order/{id}',[OrderController::class, 'reportorder'])->name('car-service.order.reportorder');
+    //--------------  car-service ----------------------
+    Route::prefix('car-service')->name('car-service.')->group(function () {
 
-            Route::get('/search-report-order/{id}/{type_service}',[OrderController::class, 'search_report_order'])->name('car-service.service.searchreportorder');
+        Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('/contact-us', [TypeServiceController::class, 'contact'])->name('contact-us');
 
-
-            Route::get('/create',[OrderController::class, 'create'])->name('car-service.order.create');
-            Route::post('/store',[OrderController::class, 'store'])->name('car-service.order.store');
-
-            Route::get('/province/{id}',[OrderController::class, 'province'])->name('car-service.order.province');
-            Route::get('/county/{id}',[OrderController::class, 'county'])->name('car-service.order.county');
-            Route::get('/order_type_service/{id}',[OrderController::class, 'order_type_service'])->name('car-service.service.order-type-service');
-            Route::get('/search_type_service/{id}/{type_service}',[OrderController::class, 'search_type_service'])->name('car-service.order.search-type-service');
-
+        //========= typeservice
+        Route::prefix('type-service')->group(function () {
+            Route::get('/create', [TypeServiceController::class, 'create'])->name('type-service.create');
+            Route::post('/store', [TypeServiceController::class, 'store'])->name('type-service.store');
         });
-  //user
-  Route::prefix('user')->group(function(){
 
-    Route::get('/edit',[UserController::class, 'edituser'])->name('car-service.user.edit');
-    Route::get('/message/{id}/{type}',[UserController::class, 'message'])->name('car-service.user.message');
-    Route::get('/message/status/{id}/{status}',[UserController::class, 'status'])->name('car-service.user.message.status');
-    Route::get('/message/rate/{id}/{rate}',[UserController::class, 'rate'])->name('car-service.user.message.rate');
-    Route::get('/recharge/',[UserController::class, 'recharge'])->name('car-service.user.recharge');
-    Route::put('/recharge/pay/{user}',[UserController::class, 'pay'])->name('car-service.user.recharge.pay');
-    Route::get('/verify',[UserController::class, 'verifyy'])->name('car-service.user.verify');
-    Route::get('/recharge/receipt/{referenceId}',[UserController::class, 'receipt'])->name('car-service.user.receipt');
-    Route::put('/update/{user}',[UserController::class, 'updateuser'])->name('car-service.user.update');
+        //========= order
+        Route::prefix('order')->name('order.')->controller(OrderController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/report-service/{id}', 'reportservice')->name('reportservice');
+            Route::get('/report-order/{id}',  'reportorder')->name('reportorder');
+            Route::get('/search-report-order/{id}/{type_service}', 'search_report_order')->name('searchreportorder'); //service
+            Route::get('/create', 'create')->name('create');
+            Route::post('/store', 'store')->name('store');
+            Route::get('/province/{id}', 'province')->name('province');
+            Route::get('/county/{id}',  'county')->name('county');
+            Route::get('/order_type_service/{id}',  'order_type_service')->name('order-type-service');
+            Route::get('/search_type_service/{id}/{type_service}',  'search_type_service')->name('search-type-service');
+        });
 
-    });
-     //service
-  Route::prefix('service')->group(function(){
+        //========= user
+        Route::prefix('user')->name('user.')->controller(UserController::class)->group(function () {
+            Route::get('/edit',  'edituser')->name('edit');
+            Route::get('/message/{id}/{type}', 'message')->name('message');
+            Route::get('/message/status/{id}/{status}', 'status')->name('message.status');
+            Route::get('/message/rate/{id}/{rate}', 'rate')->name('message.rate');
+            Route::get('/recharge',  'recharge')->name('recharge');
+            Route::put('/recharge/pay/{user}',  'pay')->name('recharge.pay');
+            Route::get('/verify',  'verifyy')->name('verify');
+            Route::get('/recharge/receipt/{referenceId}',  'receipt')->name('receipt');
+            Route::put('/update/{user}', 'updateuser')->name('update');
+        });
 
-    Route::get('/report-service/{id}',[OrderController::class, 'reportservice'])->name('car-service.service.reportservice');
-
-    Route::get('/search-report-service/{id}/{type_service}',[OrderController::class, 'search_report_service'])->name('car-service.service.searchreportservice');
-
-    Route::get('/',[ServiceController::class, 'index'])->name('car-service.service');
-    Route::get('/create',[ServiceController::class, 'create'])->name('car-service.service.create')->middleware('check');
-
-    Route::post('/store',[ServiceController::class, 'store'])->name('car-service.service.store');
-    Route::delete('/destroy/{id}',[ServiceController::class, 'destroy'])->name('car-service.service.destroy');
-    Route::get('/edit/{service}',[ServiceController::class, 'edit'])->name('car-service.service.edit');
-    Route::put('/update/{service}',[ServiceController::class, 'update'])->name('car-service.service.update');
-    Route::get('/province/{id}',[ServicesController::class, 'province'])->name('admin.service.province');
-    Route::get('/county/{id}',[ServicesController::class, 'county'])->name('admin.service.county');
-    Route::get('/verify/{id}',[ServicesController::class, 'county'])->name('admin.service.vefiry');
+        //============ service
+        Route::prefix('service')->name('service.')->controller(ServiceController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            // Route::get('/report-service/{id}', 'reportservice')->name('reportservice');
+            Route::get('/search-report-service/{id}/{type_service}', 'search_report_service')->name('searchreportservice');
+            Route::get('/create', 'create')->name('create')->middleware('check');
+            Route::post('/store', 'store')->name('store');
+            Route::delete('/destroy/{id}', 'destroy')->name('destroy');
+            Route::get('/edit/{service}', 'edit')->name('edit');
+            Route::put('/update/{service}', 'update')->name('update');
+            Route::get('/province/{id}', 'province')->name('province'); //admin
+            Route::get('/county/{id}', 'county')->name('county'); //admin
+            Route::get('/verify/{id}', 'county')->name('vefiry'); //admin
+        });
     });
 });
 

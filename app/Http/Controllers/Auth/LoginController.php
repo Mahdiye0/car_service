@@ -44,41 +44,35 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
     }
-    // public function showLoginForm()
-    // {
-    //     return view('auth.login');
-    // }
+
     public function login(Request $request)
     {
 
         $input = $request->all();
-        // dd($input['user_name']);
 
         $this->validate($request, [
             'user_name' => 'required',
             'password' => 'required',
         ]);
 
-        $temp = User::where(['user_name'=> $input['user_name'],'verification'=>1])->with('roles')->get();
+        $temp = User::where(['user_name' => $input['user_name'], 'verification' => 1])->with('roles')->get();
 
-// dd($temp[0]->password);
-        if(Hash::check($input['password'],$temp[0]->password))
-        {
-        if (count($temp)==1 && $temp[0]['roles'][0]->id==3) {
-            Auth::loginUsingId($temp[0]->id);
+        if (Hash::check($input['password'], $temp[0]->password)) {
+            if (count($temp) == 1 && $temp[0]['roles'][0]->id == 3) {
+                Auth::loginUsingId($temp[0]->id);
 
-            return redirect()->route('admin.home');
-        } elseif($temp->count()) {
+                return redirect()->route('admin.home');
+            } elseif ($temp->count()) {
 
-            Auth::loginUsingId($temp[0]->id);
-            return redirect()->route('home');
-        } else {
-            throw ValidationException::withMessages([
-                'password' => [trans('auth.failed')],
-            ]);
-            return redirect()->route('login')
-                ->with('خطا', 'نام کاربری یا کلمه عبور اشتباه است');
+                Auth::loginUsingId($temp[0]->id);
+                return redirect()->route('home');
+            } else {
+                throw ValidationException::withMessages([
+                    'password' => [trans('auth.failed')],
+                ]);
+                return redirect()->route('login')
+                    ->with('خطا', 'نام کاربری یا کلمه عبور اشتباه است');
+            }
         }
-    }
     }
 }

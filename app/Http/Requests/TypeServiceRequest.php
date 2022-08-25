@@ -23,24 +23,18 @@ class TypeServiceRequest extends FormRequest
      */
     public function rules()
     {
-        if($this->isMethod('post')){
+        if ($this->isMethod('post')) {
             return [
                 'name' => 'required|max:120|min:2',
                 'description' => 'required|max:500|min:5',
                 'tags' => 'required',
-
-
             ];
-        }
-        elseif($this->isMethod('put')){
+        } elseif ($this->isMethod('put')) {
             return [
                 'name' => 'required|max:120|min:2',
                 'description' => 'required|max:500|min:5',
                 'tags' => 'required',
-
-
             ];
         }
-
     }
 }
